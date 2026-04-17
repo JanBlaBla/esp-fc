@@ -22,6 +22,20 @@ Tooling defaults:
 - Flashing tool: `esptool-js` web flasher or `PlatformIO/esptool`
 - CLI location: `Betaflight App -> CLI`
 
+## Validated Bench State
+
+Validated on `2026-04-17` during props-off bench checks:
+- IMU detected by `status`: `MPU6500/I2C`
+- Magnetometer disabled: `mag_dev NONE`, `mag rate 0 Hz`
+- Working I2C pins in current profile: `pin_i2c_scl 21`, `pin_i2c_sda 22`
+- Working orientation: `gyro_align CW180`
+- Working motor outputs: `pin_output_0 33`, `pin_output_1 25`, `pin_output_2 26`, `pin_output_3 27`
+
+Bench interpretation:
+- Keep the validated working configuration even though it differs from the earlier planning assumptions.
+- Use the Setup tab only to verify frame/model movement agreement.
+- Use the Motors tab slider test to verify physical motor corners, not assumptions from earlier drafts.
+
 ## Implementation Plan
 
 ### 1. Repository and project foundation
