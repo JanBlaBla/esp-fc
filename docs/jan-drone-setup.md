@@ -33,12 +33,50 @@ If the PWA cannot connect reliably, use the legacy `10.10.0` desktop release as 
 
 The preset:
 
-- enables `FEATURE_RX_SPI` for the nRF24 receiver
-- keeps `MPU6050` on `GPIO 21/22`
-- maps motors to `27 / 26 / 25 / 33`
+- enables `FEATURE_RX_SPI` for the built-in ESP-NOW receiver path
+- keeps the validated I2C pins on `GPIO 21/22`
+- maps motors to the validated bench order `33 / 25 / 26 / 27`
 - disables serial and buzzer pin conflicts with those motors
 - sets `DShot300`
-- sets `ARM`, `AIRMODE`, `ANGLE`, and `BUZZER` switch ranges
+- sets `ARM`, `ANGLE`, and `BUZZER` switch ranges
+
+## Controller bridge
+
+Use a separate original `ESP32` as the PS5 controller bridge.
+
+The maintained bridge sketch is:
+
+- [ps5_nrf24_controller.ino](C:\Users\janve\Documents\Arduino\Stolen%20FC%20from%20online\esp-fc\bridges\ps5_nrf24_controller\ps5_nrf24_controller.ino)
+
+The newly added workspace folder:
+
+- `Input bridge/`
+
+should be treated as a controller-input reference and pairing prototype, not as the canonical FC integration point.
+
+Current control mapping expected by the receiver setup:
+
+- left stick `X` -> yaw
+- left stick `Y` -> throttle with safe centered-stick remap
+- right stick `X` -> roll
+- right stick `Y` -> pitch
+- `R1` -> arm
+- `L1` -> angle mode
+- `Circle` -> buzzer
+
+Current temporary wireless path:
+
+```text
+PS5 controller -> ground ESP32 over Bluetooth -> ESP-NOW -> drone ESP32 running ESP-FC
+```
+
+For this temporary phase, `nRF24` is deferred. The built-in `ESP-FC` ESP-NOW receiver path is the active transport.
+
+Safe throttle rule:
+
+- centered left stick must read near minimum throttle in the Receiver tab
+- pulling the stick downward must stay at minimum throttle
+- only pushing the stick upward from center should raise throttle
 
 ## First bench checks
 
@@ -50,3 +88,6 @@ Run these before connecting props:
 4. verify motor direction physically
 5. power the controller bridge and verify channels move in the Receiver tab
 6. verify link-loss causes failsafe and disarm
+7. verify `R1`, `L1`, and `Circle` hit the expected AUX channels and mode ranges
+8. verify centered throttle reads near `1000`, not `1500`
+9. verify pushing the left stick down does not increase throttle

@@ -6,12 +6,14 @@ set feature_soft_serial 0
 # - IMU detected as MPU6500/I2C
 # - Setup model and Motors tab matched with gyro_align CW180
 # - Working motor pin order was mirrored from the original assumption
+# - Mixer is configured for reversed motor direction convention
+#   Physical motor spin still has to be set on the ESCs / by wiring
 set pin_i2c_scl 21
 set pin_i2c_sda 22
-set pin_output_0 33
-set pin_output_1 25
-set pin_output_2 26
-set pin_output_3 27
+set pin_output_0 25
+set pin_output_1 33
+set pin_output_2 27
+set pin_output_3 26
 set pin_buzzer -1
 set pin_led -1
 set pin_serial_1_tx -1
@@ -21,14 +23,15 @@ set pin_serial_2_rx -1
 set serial_1 0 115200 0
 set serial_2 0 115200 0
 set mixer_type QUADX
+set mixer_yaw_reverse 1
 set gyro_align CW180
 set output_motor_protocol DSHOT300
 set output_motor_async 0
 set output_motor_rate 480
 set output_dshot_telemetry 0
 set mode_0 0 4 1300 2100 0 0
-set mode_1 2 4 1300 2100 0 0
-set mode_2 1 5 1300 2100 0 0
-set mode_3 3 6 1300 2100 0 0
+set mode_1 2 5 1300 2100 0 0
+set mode_2 4 6 1300 2100 0 0
+set mode_3 0 4 900 900 0 0
 save
 reboot

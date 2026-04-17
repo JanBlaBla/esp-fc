@@ -1,24 +1,18 @@
-# Jan Drone nRF24 Link
+# Jan Drone Temporary Wireless Link
 
-This project uses `nRF24L01+` as the custom control transport.
+This project currently uses `ESP-NOW` as the temporary control transport during configuration and bench bring-up.
 
 The radio path is:
 
 ```text
-PS5 controller -> controller ESP32 -> nRF24 -> flight-controller ESP32 -> ESP-FC input
+PS5 controller -> controller ESP32 -> ESP-NOW -> flight-controller ESP32 -> ESP-FC input
 ```
 
-## Flight-controller ESP32 wiring
+`nRF24L01+` remains a later migration path once the radio modules arrive and the base quad is already stable.
 
-Fixed pinout used by the receiver implementation:
+## Flight-controller ESP32
 
-- `SCK` -> `GPIO 18`
-- `MOSI` -> `GPIO 23`
-- `MISO` -> `GPIO 19`
-- `CSN` -> `GPIO 16`
-- `CE` -> `GPIO 17`
-- `VCC` -> stable `3.3V`
-- `GND` -> shared ground with the ESP32 and ESC signal ground
+For the current temporary link, the drone ESP32 uses the built-in `ESP-FC` ESP-NOW receiver path. No external radio wiring is required for the control transport.
 
 Keep the `MPU6050` on:
 
@@ -27,46 +21,25 @@ Keep the `MPU6050` on:
 
 Keep motor outputs on:
 
-- motor 1 -> `GPIO 27`
-- motor 2 -> `GPIO 26`
-- motor 3 -> `GPIO 25`
-- motor 4 -> `GPIO 33`
+- motor 1 -> `GPIO 33`
+- motor 2 -> `GPIO 25`
+- motor 3 -> `GPIO 26`
+- motor 4 -> `GPIO 27`
 
-## Controller-side ESP32 wiring
+These motor pins match the validated bench preset in `jan-drone-base.cli`, not the older draft assumption from the first planning pass.
 
-Use the same SPI and control pinout on the controller bridge ESP32:
-
-- `SCK` -> `GPIO 18`
-- `MOSI` -> `GPIO 23`
-- `MISO` -> `GPIO 19`
-- `CSN` -> `GPIO 16`
-- `CE` -> `GPIO 17`
-- `VCC` -> stable `3.3V`
-- `GND` -> ESP32 ground
+## Controller-side ESP32
 
 The PS5 controller must pair to an original `ESP32` that supports Bluetooth Classic.
 
-## Power and stability notes
+Reference material for the controller side is kept in:
 
-- `nRF24L01+` modules are sensitive to power noise.
-- Put a local decoupling capacitor close to each radio module.
-- A `10uF` to `47uF` capacitor across `VCC` and `GND` at the radio is recommended.
-- Do not power the radio from a noisy or overloaded `3.3V` rail.
-- All grounds must be common.
+- workspace prototype folder: `Input bridge/`
+- maintained FC bridge sketch: `esp-fc/bridges/ps5_nrf24_controller/`
 
-## Packet format
+## Receiver frame
 
-The shared packet lives in [JanDroneNrf24Protocol.h](C:\Users\janve\Documents\Arduino\Stolen%20FC%20from%20online\esp-fc\include\JanDroneNrf24Protocol.h).
-
-Fields:
-
-- `magic`
-- `version`
-- `flags`
-- `sequence`
-- `txMillis`
-- `channels[7]`
-- `crc`
+The bridge must send the built-in `espnow-rclink` RC frame that `ESP-FC` already expects over `InputEspNow`.
 
 Channel order:
 
@@ -77,17 +50,31 @@ Channel order:
 - `4` arm
 - `5` angle/acro
 - `6` buzzer
+- `7` reserved
 
-Flags:
+Current PS5 to channel mapping used by the maintained bridge sketch:
 
-- `FLAG_ARM`
-- `FLAG_ANGLE`
-- `FLAG_BUZZER`
-- `FLAG_FAILSAFE`
+- left stick `X` -> channel `3` yaw
+- left stick `Y` -> channel `2` throttle with safe centered-stick remap
+- right stick `X` -> channel `0` roll
+- right stick `Y` -> channel `1` pitch
+- `R1` -> channel `4` arm
+- `L1` -> channel `5` angle/acro
+- `Circle` -> channel `6` buzzer
+- channel `7` reserved and held low
 
-Timeout policy:
+The `Input bridge/Receive_Data/Receive_Data.ino` sketch is the raw input reference for these controls. The conversion to RC-style PWM values happens in `bridges/ps5_nrf24_controller/ps5_nrf24_controller.ino`.
 
-- frame-loss threshold: `120 ms`
-- failsafe threshold: `350 ms`
+## Safe throttle behavior
 
-The receiver disarms through `ESP-FC` failsafe handling when packets stop or when `FLAG_FAILSAFE` is set.
+Because the PS5 left stick is self-centering:
+
+- centered stick -> minimum throttle
+- downward travel -> minimum throttle
+- only upward travel from center raises throttle
+
+This is required so that controller connect and controller reconnect never present as mid-throttle in the Receiver tab.
+
+## Later nRF24 migration
+
+Once the `nRF24L01+` modules arrive, they can be evaluated as a separate transport option. That migration is not part of the temporary ESP-NOW bring-up path.

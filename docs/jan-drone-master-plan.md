@@ -4,10 +4,12 @@
 
 Use `ESP-FC` in your fork as the only flight-controller infrastructure. Treat the existing Arduino firmware in `Jan drone fc/drone_flight_controller` as reference material only for wiring, motor order, safety ideas, and known-good assumptions.
 
+Also treat the workspace folder `Input bridge/` as controller-bridge reference material only. It is the proof-of-life source for PS5 pairing, raw button layout, and early ESP32 controller experiments. The maintained flight path should stay in the in-repo bridge sketch under `esp-fc/bridges/ps5_nrf24_controller`.
+
 Default hardware assumptions for the whole plan:
 - Flight controller MCU: original `ESP32`
 - Controller bridge MCU: separate original `ESP32` with Bluetooth Classic support
-- Radio link: `2x nRF24L01+`, one on the flight controller and one on the controller bridge
+- Radio link for the current milestone: built-in `ESP-NOW` between the two ESP32 boards
 - IMU: `MPU6050` on `I2C`, address `0x68`
 - I2C pins: `SCL 22`, `SDA 21`
 - Motor outputs: `27 / 26 / 25 / 33`
@@ -15,7 +17,7 @@ Default hardware assumptions for the whole plan:
 - ESC protocol: `DShot300`
 - Motor positions: `1 left-back`, `2 left-front`, `3 right-front`, `4 right-back`
 - Motor spin intent: `1 CW`, `2 CCW`, `3 CW`, `4 CCW`
-- First control milestone: stable bench bring-up first, then PS5 over `nRF24`
+- First control milestone: stable bench bring-up first, then PS5 over `ESP-NOW`
 
 Tooling defaults:
 - Configuration UI: `Betaflight App` PWA at `app.betaflight.com`
@@ -93,8 +95,8 @@ Bench interpretation:
 ### 6. Receiver and control-input architecture
 - Treat `ESP-FC` as requiring receiver-style input, not raw gamepad packets.
 - Use a dedicated controller bridge ESP32 for PS5 input.
-- Use `nRF24L01+` only as the transport between controller bridge and flight controller.
-- Convert the `nRF24` payload into a receiver-style input stream inside `ESP-FC`.
+- Use `ESP-NOW` as the transport between controller bridge and flight controller for the current milestone.
+- Reuse the built-in `ESP-FC` `InputEspNow` receiver path instead of adding a custom receiver protocol.
 - Keep native PS5 Bluetooth directly inside the FC process out of the first airworthy milestone.
 - Define one canonical stick mapping for all control paths:
   - Throttle
@@ -123,6 +125,25 @@ Bench interpretation:
 - Define reconnect and startup order for controller power-up.
 - Define what happens if the controller disconnects while armed.
 - Define whether Bluetooth is only for bench testing at first or allowed for hover tests.
+
+Current documented bridge mapping to implement and preserve unless a later change is intentional:
+- left stick `X` -> yaw
+- left stick `Y` -> throttle with safe centered-stick remap
+- right stick `X` -> roll
+- right stick `Y` -> pitch
+- `R1` -> arm/disarm
+- `L1` -> angle mode
+- `Circle` -> buzzer
+
+Safe throttle behavior to preserve:
+- centered stick -> minimum throttle
+- stick pulled down -> minimum throttle
+- only upward travel from center increases throttle
+- controller connect or reconnect must never create mid-throttle
+
+Reference sources for this mapping:
+- `Input bridge/Receive_Data/Receive_Data.ino` for raw controller field order
+- `esp-fc/bridges/ps5_nrf24_controller/ps5_nrf24_controller.ino` for the maintained RC conversion
 
 ### 8. Safety system definition
 - Freeze a preflight checklist for every powered test.
@@ -221,7 +242,7 @@ Important interfaces the implementation should standardize:
 - `ESP-FC` CLI configuration for pin mapping, motor protocol, receiver mode, and feature toggles
 - One saved baseline `diff all` for your board
 - One saved "known flyable" config snapshot
-- One documented `nRF24` packet format and pinout
+- One documented active wireless control path for the current milestone
 - One documented controller-to-channel mapping for the PS5 path
 - One documented safety policy for arm, disarm, and failsafe
 
@@ -263,7 +284,7 @@ Flight-adjacent tests after prop-on:
 - Main line of development is your `ESP-FC` fork only.
 - The custom Arduino firmware is reference-only and will not be further developed unless a specific gap in `ESP-FC` forces it.
 - First successful milestone is a safe, bench-validated `ESP-FC` setup on your current wiring.
-- PS5 support runs through a separate ESP32 controller bridge and `nRF24` transport.
+- PS5 support runs through a separate ESP32 controller bridge and `ESP-NOW` transport for the current milestone.
 - Receiver-style input compatibility is preferred over bespoke direct gamepad control inside the FC.
 - `DShot300` is the default protocol unless signal reliability forces a fallback.
 - Betaflight App PWA is the primary setup UI, with legacy desktop only as fallback.

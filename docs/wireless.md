@@ -44,3 +44,27 @@ In ESP-FC you have to choose `SPI Rx (e.g. built-in Rx)` as Receiver mode in Rec
 Transmitter and receiver binds automatically after power up, you don't need to do anything. Recomended startup procedure is:
 1. turn on transmitter first
 2. next power up receiver/flight controller
+
+## Custom nRF24 control path
+
+The Jan Drone project does not use `ESP-NOW` for active flight control. It uses a custom receiver path instead:
+
+```text
+PS5 controller -> bridge ESP32 -> nRF24L01+ -> flight-controller ESP32 -> ESP-FC input
+```
+
+Why this exists:
+
+- the PS5 controller is handled on a separate original `ESP32`
+- the bridge converts gamepad state into receiver-style RC channels
+- `ESP-FC` stays isolated from Bluetooth stack complexity during the flight milestone
+
+Project-specific documentation for this path lives in:
+
+- [jan-drone-master-plan.md](./jan-drone-master-plan.md)
+- [jan-drone-setup.md](./jan-drone-setup.md)
+- [jan-drone-nrf24.md](./jan-drone-nrf24.md)
+
+The maintained controller-side bridge sketch lives in:
+
+- `bridges/ps5_nrf24_controller/ps5_nrf24_controller.ino`
