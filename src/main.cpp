@@ -6,7 +6,7 @@
 #include <Kalman.h>
 #include <Madgwick.h>
 #include <Mahony.h>
-#include <printf.h>
+#include "../lib/printf/src/printf.h"
 #include <blackbox/blackbox.h>
 #include <EscDriver.h>
 #include <EspWire.h>

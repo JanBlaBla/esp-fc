@@ -1,0 +1,29 @@
+set model_name JAN-DRONE
+set feature_rx_serial 0
+set feature_rx_spi 1
+set feature_soft_serial 0
+set pin_i2c_scl 22
+set pin_i2c_sda 21
+set pin_output_0 27
+set pin_output_1 26
+set pin_output_2 25
+set pin_output_3 33
+set pin_buzzer -1
+set pin_led -1
+set pin_serial_1_tx -1
+set pin_serial_1_rx -1
+set pin_serial_2_tx -1
+set pin_serial_2_rx -1
+set serial_1 0 115200 0
+set serial_2 0 115200 0
+set mixer_type QUADX
+set output_motor_protocol DSHOT300
+set output_motor_async 0
+set output_motor_rate 480
+set output_dshot_telemetry 0
+set mode_0 0 4 1300 2100 0 0
+set mode_1 2 4 1300 2100 0 0
+set mode_2 1 5 1300 2100 0 0
+set mode_3 3 6 1300 2100 0 0
+save
+reboot

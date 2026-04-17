@@ -9,7 +9,7 @@ Wireless::Wireless(Model& model): _model(model), _status(STOPPED), _server(1111)
 int Wireless::begin()
 {
   WiFi.persistent(false);
-#ifdef ESPFC_ESPNOW
+#if defined(ESPFC_ESPNOW) && !defined(ESPFC_NRF24)
   if(_model.isFeatureActive(FEATURE_RX_SPI))
   {
     startAp();

@@ -8,6 +8,9 @@
 #include "Device/InputSBUS.h"
 #include "Device/InputCRSF.h"
 #include "TelemetryManager.h"
+#if defined(ESP32) && defined(ESPFC_NRF24)
+#include "Device/InputNrf24.h"
+#endif
 #if defined(ESPFC_ESPNOW)
 #include "Device/InputEspNow.h"
 #endif
@@ -65,6 +68,9 @@ class Input
     Device::InputIBUS _ibus;
     Device::InputSBUS _sbus;
     Device::InputCRSF _crsf;
+#if defined(ESP32) && defined(ESPFC_NRF24)
+    Device::InputNrf24 _nrf24;
+#endif
 #if defined(ESPFC_ESPNOW)
     Device::InputEspNow _espnow;
 #endif

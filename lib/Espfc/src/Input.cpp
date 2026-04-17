@@ -366,12 +366,19 @@ Device::InputDevice * Input::getInputDevice()
     _model.logger.info().log(F("RX PPM")).log(_model.config.pin[PIN_INPUT_RX]).logln(_model.config.input.ppmMode);
     return &_ppm;
   }
-#if defined(ESPFC_ESPNOW)
+#if defined(ESP32) && defined(ESPFC_NRF24)
   else if(_model.isFeatureActive(FEATURE_RX_SPI))
   {
-    int status = _espnow.begin();
+    const int status = _nrf24.begin();
+    _model.logger.info().log(F("RX NRF24")).logln(status);
+    return status ? &_nrf24 : nullptr;
+  }
+#elif defined(ESPFC_ESPNOW)
+  else if(_model.isFeatureActive(FEATURE_RX_SPI))
+  {
+    const int status = _espnow.begin();
     _model.logger.info().log(F("RX ESPNOW")).logln(status);
-    return &_espnow;
+    return status ? &_espnow : nullptr;
   }
 #endif
 

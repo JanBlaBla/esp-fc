@@ -14,7 +14,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <printf.h>
+#include "../../printf/src/printf.h"
 #include <stddef.h>
 
 #if defined(ESP32)

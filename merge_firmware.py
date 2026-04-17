@@ -1,5 +1,7 @@
 Import("env")
 
+import subprocess
+
 APP_BIN = "$BUILD_DIR/${PROGNAME}.bin"
 MERGED_BIN = "$BUILD_DIR/${PROGNAME}_0x00.bin"
 BOARD_CONFIG = env.BoardConfig()
@@ -10,23 +12,20 @@ def merge_bin(source, target, env):
     # the final application binary
     flash_images = env.Flatten(env.get("FLASH_EXTRA_IMAGES", [])) + ["$ESP32_APP_OFFSET", APP_BIN]
 
-    # Run esptool to merge images into a single binary
-    env.Execute(
-        " ".join(
-            [
-                "$PYTHONEXE",
-                "$OBJCOPY",
-                "--chip",
-                BOARD_CONFIG.get("build.mcu", "esp32"),
-                "merge_bin",
-                "--flash_size",
-                BOARD_CONFIG.get("upload.flash_size", "4MB"),
-                "-o",
-                MERGED_BIN,
-            ]
-            + flash_images
-        )
-    )
+    # Quote expanded paths so the merge step also works from folders with spaces.
+    command = [
+        env.subst("$PYTHONEXE"),
+        env.subst("$OBJCOPY"),
+        "--chip",
+        BOARD_CONFIG.get("build.mcu", "esp32"),
+        "merge_bin",
+        "--flash_size",
+        BOARD_CONFIG.get("upload.flash_size", "4MB"),
+        "-o",
+        env.subst(MERGED_BIN),
+    ] + [env.subst(image) for image in flash_images]
+
+    return subprocess.check_call(command)
 
 # Add a post action that runs esptoolpy to merge available flash images
 env.AddPostAction(APP_BIN , merge_bin)
