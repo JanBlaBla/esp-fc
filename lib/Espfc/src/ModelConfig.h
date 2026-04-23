@@ -424,6 +424,7 @@ struct InputConfig
   int8_t interpolationMode = INPUT_INTERPOLATION_AUTO;
   int8_t interpolationInterval = 26;
   int8_t deadband = 3;
+  uint8_t throttleExpo = 50;
 
   int8_t filterType = INPUT_FILTER;
   int8_t filterAutoFactor = 50;

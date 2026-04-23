@@ -392,6 +392,10 @@ class Model
         config.output.motorLimit = 100;
       }
 
+      if(config.input.throttleExpo > 100) {
+        config.input.throttleExpo = 35;
+      }
+
       // configure serial ports
       constexpr uint32_t serialFunctionAllowedMask = SERIAL_FUNCTION_MSP | SERIAL_FUNCTION_RX_SERIAL | SERIAL_FUNCTION_BLACKBOX | 
         SERIAL_FUNCTION_GPS | SERIAL_FUNCTION_TELEMETRY_FRSKY | SERIAL_FUNCTION_TELEMETRY_HOTT | SERIAL_FUNCTION_TELEMETRY_IBUS | SERIAL_FUNCTION_VTX_SMARTAUDIO;

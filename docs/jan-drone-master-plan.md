@@ -12,10 +12,10 @@ Default hardware assumptions for the whole plan:
 - Radio link for the current milestone: built-in `ESP-NOW` between the two ESP32 boards
 - IMU: `MPU6050` on `I2C`, address `0x68`
 - I2C pins: `SCL 22`, `SDA 21`
-- Motor outputs: `27 / 26 / 25 / 33`
+- Motor outputs: `26 / 25 / 14 / 27`
 - Frame: `Quad X`
 - ESC protocol: `DShot300`
-- Motor positions: `1 left-back`, `2 left-front`, `3 right-front`, `4 right-back`
+- Motor positions: `1 bottom-right`, `2 top-right`, `3 bottom-left`, `4 top-left`
 - Motor spin intent: `1 CW`, `2 CCW`, `3 CW`, `4 CCW`
 - First control milestone: stable bench bring-up first, then PS5 over `ESP-NOW`
 
@@ -29,9 +29,10 @@ Tooling defaults:
 Validated on `2026-04-17` during props-off bench checks:
 - IMU detected by `status`: `MPU6500/I2C`
 - Magnetometer disabled: `mag_dev NONE`, `mag rate 0 Hz`
-- Working I2C pins in current profile: `pin_i2c_scl 21`, `pin_i2c_sda 22`
+- Working I2C pins in current profile: `pin_i2c_scl 22`, `pin_i2c_sda 21`
 - Working orientation: `gyro_align CW180`
-- Working motor outputs: `pin_output_0 33`, `pin_output_1 25`, `pin_output_2 26`, `pin_output_3 27`
+- Working motor outputs: `pin_output_0 26`, `pin_output_1 25`, `pin_output_2 14`, `pin_output_3 27`
+- Installed `nRF24L01+` wiring on the drone ESP32: `CE 4`, `CSN 5`, `SCK 18`, `MOSI 23`, `MISO 19`
 
 Bench interpretation:
 - Keep the validated working configuration even though it differs from the earlier planning assumptions.

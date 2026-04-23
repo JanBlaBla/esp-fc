@@ -11,8 +11,8 @@ static constexpr size_t kChannelCount = 7;
 static constexpr uint16_t kFrameTimeoutMs = 120;
 static constexpr uint16_t kFailsafeTimeoutMs = 350;
 static constexpr uint8_t kRadioChannel = 108;
-static constexpr uint8_t kCsnPin = 16;
-static constexpr uint8_t kCePin = 17;
+static constexpr uint8_t kCsnPin = 5;
+static constexpr uint8_t kCePin = 4;
 static constexpr uint64_t kPipeAddress = 0xD14F43524CULL; // "D1FCRL"
 
 enum Flag : uint8_t {

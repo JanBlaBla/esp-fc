@@ -479,6 +479,7 @@ const Cli::Param * Cli::initialize(ModelConfig& c)
     Param(PSTR("input_yaw_limit"), &c.input.rateLimit[2]),
 
     Param(PSTR("input_deadband"), &c.input.deadband),
+    Param(PSTR("input_throttle_expo"), &c.input.throttleExpo),
 
     Param(PSTR("input_min"), &c.input.minRc),
     Param(PSTR("input_mid"), &c.input.midRc),

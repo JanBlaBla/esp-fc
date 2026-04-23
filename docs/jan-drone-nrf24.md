@@ -8,7 +8,7 @@ The radio path is:
 PS5 controller -> controller ESP32 -> ESP-NOW -> flight-controller ESP32 -> ESP-FC input
 ```
 
-`nRF24L01+` remains a later migration path once the radio modules arrive and the base quad is already stable.
+An `nRF24L01+` is now physically wired on the drone ESP32, but it is not the active control path yet.
 
 ## Flight-controller ESP32
 
@@ -21,12 +21,28 @@ Keep the `MPU6050` on:
 
 Keep motor outputs on:
 
-- motor 1 -> `GPIO 33`
+- motor 1 -> `GPIO 26`
 - motor 2 -> `GPIO 25`
-- motor 3 -> `GPIO 26`
+- motor 3 -> `GPIO 14`
 - motor 4 -> `GPIO 27`
 
+This matches the Betaflight `QUAD X` diagram:
+
+- motor 1 -> bottom-right
+- motor 2 -> top-right
+- motor 3 -> bottom-left
+- motor 4 -> top-left
+
 These motor pins match the validated bench preset in `jan-drone-base.cli`, not the older draft assumption from the first planning pass.
+
+The installed `nRF24L01+` wiring on the drone ESP32 is:
+
+- `CE` -> `GPIO 4`
+- `CSN` -> `GPIO 5`
+- `SCK` -> `GPIO 18`
+- `MOSI` -> `GPIO 23`
+- `MISO` -> `GPIO 19`
+- `IRQ` -> not connected
 
 ## Controller-side ESP32
 
@@ -75,6 +91,6 @@ Because the PS5 left stick is self-centering:
 
 This is required so that controller connect and controller reconnect never present as mid-throttle in the Receiver tab.
 
-## Later nRF24 migration
+## Later nRF24 activation
 
-Once the `nRF24L01+` modules arrive, they can be evaluated as a separate transport option. That migration is not part of the temporary ESP-NOW bring-up path.
+The radio is now mounted and wired, but the temporary ESP-NOW path is still the active transport. When you switch the drone build back to the `ESPFC_NRF24` receiver backend, the code should now match the installed `CE = GPIO 4` and `CSN = GPIO 5` wiring.

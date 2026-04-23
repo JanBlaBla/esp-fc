@@ -2,18 +2,19 @@ set model_name JAN-DRONE
 set feature_rx_serial 0
 set feature_rx_spi 1
 set feature_soft_serial 0
-# Validated bench config on 2026-04-17:
+# Validated bench config on 2026-04-19:
 # - IMU detected as MPU6500/I2C
 # - Setup model and Motors tab matched with gyro_align CW180
-# - Working motor pin order was mirrored from the original assumption
-# - Mixer is configured for reversed motor direction convention
+# - Current validated QUAD X motor order: M1=26, M2=25, M3=14, M4=27
+# - Motors tab verification target: M1 bottom-right, M2 top-right, M3 bottom-left, M4 top-left
+# - Mixer is configured for the standard motor direction convention
 #   Physical motor spin still has to be set on the ESCs / by wiring
-set pin_i2c_scl 21
-set pin_i2c_sda 22
-set pin_output_0 25
-set pin_output_1 33
-set pin_output_2 27
-set pin_output_3 26
+set pin_i2c_scl 22
+set pin_i2c_sda 21
+set pin_output_0 26
+set pin_output_1 25
+set pin_output_2 14
+set pin_output_3 27
 set pin_buzzer -1
 set pin_led -1
 set pin_serial_1_tx -1
@@ -23,12 +24,17 @@ set pin_serial_2_rx -1
 set serial_1 0 115200 0
 set serial_2 0 115200 0
 set mixer_type QUADX
-set mixer_yaw_reverse 1
+set mixer_yaw_reverse 0
 set gyro_align CW180
 set output_motor_protocol DSHOT300
 set output_motor_async 0
 set output_motor_rate 480
 set output_dshot_telemetry 0
+# AUX mapping for ps5_nrf24_controller:
+# - AUX1 / channel 4: ARM on Circle (latched)
+# - AUX2 / channel 5: ANGLE on Square (latched)
+# - AUX3 / channel 6: BEEPER on Triangle (momentary)
+# - YAW remains on the yaw axis channel, driven by L1/R1 momentary buttons
 set mode_0 0 4 1300 2100 0 0
 set mode_1 2 5 1300 2100 0 0
 set mode_2 4 6 1300 2100 0 0

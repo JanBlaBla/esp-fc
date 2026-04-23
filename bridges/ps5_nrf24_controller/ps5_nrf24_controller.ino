@@ -207,6 +207,12 @@ uint16_t throttleToPwm(int32_t value)
   return clampPwm(map(value, 0, kAxisMax, kPwmAxisMin, kPwmAxisMax));
 }
 
+uint16_t yawButtonsToPwm(bool leftYaw, bool rightYaw)
+{
+  if(leftYaw == rightYaw) return kPwmAxisCenter;
+  return leftYaw ? kPwmAxisMin : kPwmAxisMax;
+}
+
 void fillSafeChannels()
 {
   g_packet.ch1 = kPwmAxisCenter;
@@ -221,9 +227,11 @@ void fillSafeChannels()
 
 void fillFromController(ControllerPtr ctl)
 {
-  const bool armButton = ctl->r1();
-  const bool angleButton = ctl->l1();
-  const bool buzzer = ctl->b();
+  const bool armButton = ctl->b();
+  const bool angleButton = ctl->x();
+  const bool leftYawButton = ctl->l1();
+  const bool rightYawButton = ctl->r1();
+  const bool buzzer = ctl->y();
 
   if(armButton && !g_lastArmButton)
   {
@@ -243,7 +251,7 @@ void fillFromController(ControllerPtr ctl)
   g_packet.ch1 = axisToPwm(ctl->axisRX());
   g_packet.ch2 = axisToPwm(ctl->axisRY(), true);
   g_packet.ch3 = throttleToPwm(ctl->axisY());
-  g_packet.ch4 = axisToPwm(ctl->axisX());
+  g_packet.ch4 = yawButtonsToPwm(leftYawButton, rightYawButton);
   g_packet.ch5 = MessageRc::encodeAux(g_armLatched ? kPwmSwitchHigh : kPwmSwitchLow);
   g_packet.ch6 = MessageRc::encodeAux(g_angleLatched ? kPwmSwitchHigh : kPwmSwitchLow);
   g_packet.ch7 = MessageRc::encodeAux(buzzer ? kPwmSwitchHigh : kPwmSwitchLow);

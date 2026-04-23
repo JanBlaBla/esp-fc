@@ -1,11 +1,20 @@
 
 #include "Input.h"
+#include <math.h>
 #include "Utils/Math.hpp"
 #include "Utils/MemoryHelper.h"
 
 namespace Espfc {
 
 Input::Input(Model& model, TelemetryManager& telemetry): _model(model), _telemetry(telemetry) {}
+
+static float FAST_CODE_ATTR shapeThrottle(float value, uint8_t expo)
+{
+  const float throttle = Utils::clamp((value + 1.f) * 0.5f, 0.f, 1.f);
+  const float factor = Utils::clamp(expo * 0.01f, 0.f, 1.f);
+  const float shaped = throttle * (1.f - factor) + sqrtf(throttle) * factor;
+  return shaped * 2.f - 1.f;
+}
 
 int Input::begin()
 {
@@ -66,7 +75,12 @@ void FAST_CODE_ATTR Input::setInput(Axis i, float v, bool newFrame, bool noFilte
   {
     const float nv = noFilter ? v : _model.state.input.filter[i].update(v);
     _model.state.input.us[i] = nv;
-    _model.state.input.ch[i] = Utils::map(nv, ich.min, ich.max, -1.f, 1.f);
+    float ch = Utils::map(nv, ich.min, ich.max, -1.f, 1.f);
+    if(i == AXIS_THRUST)
+    {
+      ch = shapeThrottle(ch, _model.config.input.throttleExpo);
+    }
+    _model.state.input.ch[i] = ch;
   }
   else if(newFrame)
   {
@@ -203,16 +217,21 @@ bool FAST_CODE_ATTR Input::failsafe(InputStatus status)
     return true;
   }
 
+  const uint32_t stage2Timeout = std::max(
+    Utils::clamp((uint32_t)_model.config.failsafe.delay, (uint32_t)2u, (uint32_t)200u) * TENTH_TO_US,
+    FAILSAFE_STAGE1_US + FAILSAFE_THROTTLE_RAMP_US
+  );
+
   // stage 2 timeout
   _model.state.input.lossTime = micros() - _model.state.input.frameTime;
-  if(_model.state.input.lossTime > Utils::clamp((uint32_t)_model.config.failsafe.delay, (uint32_t)2u, (uint32_t)200u) * TENTH_TO_US)
+  if(_model.state.input.lossTime > stage2Timeout)
   {
     failsafeStage2();
     return true;
   }
 
   // stage 1 timeout (100ms)
-  if(_model.state.input.lossTime >= 2 * TENTH_TO_US)
+  if(_model.state.input.lossTime >= FAILSAFE_STAGE1_US)
   {
     failsafeStage1();
     return true;
@@ -224,16 +243,31 @@ bool FAST_CODE_ATTR Input::failsafe(InputStatus status)
 void FAST_CODE_ATTR Input::failsafeIdle()
 {
   _model.state.failsafe.phase = FC_FAILSAFE_IDLE;
+  _model.state.failsafe.timeout = 0;
+  _model.state.failsafe.throttle = -1.f;
   _model.state.input.lossTime = 0;
 }
 
 void FAST_CODE_ATTR Input::failsafeStage1()
 {
-  _model.state.failsafe.phase = FC_FAILSAFE_RX_LOSS_DETECTED;
+  if(_model.state.failsafe.phase != FC_FAILSAFE_LANDING)
+  {
+    _model.state.failsafe.timeout = micros();
+    _model.state.failsafe.throttle = _model.state.input.us[AXIS_THRUST];
+  }
+
+  _model.state.failsafe.phase = FC_FAILSAFE_LANDING;
   _model.state.input.rxLoss = true;
+
+  const float startThrottle = _model.state.failsafe.throttle >= 0.f ? _model.state.failsafe.throttle : (float)PWM_RANGE_MIN;
+  const uint32_t elapsed = _model.state.failsafe.timeout ? micros() - _model.state.failsafe.timeout : FAILSAFE_THROTTLE_RAMP_US;
+  const float factor = Utils::clamp((float)elapsed / (float)FAILSAFE_THROTTLE_RAMP_US, 0.f, 1.f);
+  const float thrust = startThrottle + ((float)PWM_RANGE_MIN - startThrottle) * factor;
+
   for(size_t i = 0; i < _model.state.input.channelCount; i++)
   {
-    setInput((Axis)i, getFailsafeValue(i), true, true);
+    const float value = i == AXIS_THRUST ? thrust : getFailsafeValue(i);
+    setInput((Axis)i, value, true, true);
   }
 }
 

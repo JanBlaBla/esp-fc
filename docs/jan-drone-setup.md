@@ -34,8 +34,8 @@ If the PWA cannot connect reliably, use the legacy `10.10.0` desktop release as 
 The preset:
 
 - enables `FEATURE_RX_SPI` for the built-in ESP-NOW receiver path
-- keeps the validated I2C pins on `GPIO 21/22`
-- maps motors to the validated bench order `33 / 25 / 26 / 27`
+- keeps the validated I2C pins on `SDA = GPIO 21`, `SCL = GPIO 22`
+- maps motors to the validated `QUAD X` order `26 / 25 / 14 / 27`
 - disables serial and buzzer pin conflicts with those motors
 - sets `DShot300`
 - sets `ARM`, `ANGLE`, and `BUZZER` switch ranges
@@ -70,7 +70,15 @@ Current temporary wireless path:
 PS5 controller -> ground ESP32 over Bluetooth -> ESP-NOW -> drone ESP32 running ESP-FC
 ```
 
-For this temporary phase, `nRF24` is deferred. The built-in `ESP-FC` ESP-NOW receiver path is the active transport.
+The drone now also has an `nRF24L01+` wired on the standard ESP32 VSPI pins:
+
+- `CE` -> `GPIO 4`
+- `CSN` -> `GPIO 5`
+- `SCK` -> `GPIO 18`
+- `MOSI` -> `GPIO 23`
+- `MISO` -> `GPIO 19`
+
+The built-in `ESP-FC` ESP-NOW receiver path remains the active transport for now. The `nRF24` wiring is documented so the later radio migration matches the hardware already on the frame.
 
 Safe throttle rule:
 

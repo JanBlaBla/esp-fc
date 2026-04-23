@@ -126,8 +126,9 @@ enum FailsafePhase {
 class FailsafeState
 {
   public:
-    FailsafePhase phase;
-    uint32_t timeout;
+    FailsafePhase phase = FC_FAILSAFE_IDLE;
+    uint32_t timeout = 0;
+    float throttle = -1.f;
 };
 
 constexpr float ACCEL_G = 9.80665f;

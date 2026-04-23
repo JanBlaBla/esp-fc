@@ -76,6 +76,8 @@ class Input
 #endif
 
     static constexpr uint32_t TENTH_TO_US = 100000UL;  // 1_000_000 / 10;
+    static constexpr uint32_t FAILSAFE_STAGE1_US = 2 * TENTH_TO_US;
+    static constexpr uint32_t FAILSAFE_THROTTLE_RAMP_US = 1000000UL;
     static constexpr uint32_t FRAME_TIME_DEFAULT_US = 23000; // 23 ms
 };
 
